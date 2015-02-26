@@ -1,21 +1,12 @@
 <?php
 /*
 Plugin Name: YFP Google Analytics Basic
-Plugin URI: https://github.com/OPunWide/...
-Description: Adds Google Analytics in its (almost) most basic form. User options are achieved by editing this code in the function getCurrentSettings().
+Plugin URI: https://SplendidSpider.com
+Description: Adds Google Analytics in its (almost) most basic form. Add your tracking ID and the Univeral Analytics script will be inserted on your page.
 Version: 0.1.0
 Author: Paul Blakelock, Splendid Spider Web Design.
 Author URI: http://SplendidSpider.com
 License: GPL2
-*/
-// yfp-ganylitcs-basic
-/*
-TODO:
-options: define local host
-options: GA id
-options: head or tail
-options: log_page
-
 */
 
 // Methods and constants needed for normal and admin modes.
