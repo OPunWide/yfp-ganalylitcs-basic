@@ -185,9 +185,8 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
         // Each of these create a row in the form table: title and an option (radio, input, etc.).
         $ss1->add_field('Analytics ID', array( $this, 'form_cb_analytics_id' ));
         $ss1->add_field('Enable tracking', array( $this, 'form_cb_radio_enable' ));
-        $ss1->add_field('Use console logging', array( $this, 'form_cb_radio_logging' ));
         $ss1->add_field('Add to head or tail', array( $this, 'form_cb_radio_head' ));
-
+        $ss1->add_field('Use console logging', array( $this, 'form_cb_radio_logging' ));
         $ss1->add_field('Servers to not track', array( $this, 'form_cb_seerver_excludes' ));
     }
 
@@ -234,7 +233,6 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
             'Yes',
             $isOn ? ' checked' : ''
         );
-        echo '<br>This is form_cb_radio_logging, a call back that displays this first item.<br>';
         echo implode("\n\t\t", $buttons);
         echo '<br />Use debug mode. Logs an entry to the console. Rarely used.';
         //var_dump(get_option( Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS ));
@@ -258,7 +256,6 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
             'Tail',
             $isOn ? '' : ' checked'
         );
-        echo '<br>This is form_cb_radio_head, a call back that displays this first item.<br>';
         echo implode("\n\t\t", $buttons);
         echo '<br />Place JavaScript in the head section or at the end. Google suggests head.';
         //var_dump(get_option( Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS ));
@@ -301,7 +298,7 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
             $this->attrToArray(Yfp_Ganalytics_Basic_Common::OK_GID, Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS),
             esc_html__($curArr[Yfp_Ganalytics_Basic_Common::OK_GID])
         );
-        echo '<br />This is the ID provided by Google for your site\'s tracking.';
+        echo '<br />This is the Tracking ID provided by Google for your site.';
         //var_dump(get_option( Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS ));
 
     }
@@ -318,7 +315,7 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
             $this->attrToArray(Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES, Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS),
             esc_html__($str)
         );
-        echo '<br />Define server specs that you do not want to track. This uses Google\'s test mode, so loggin can still occur.';
+        echo '<br />Add servers (domains) that you do not want to track in a semicolon separated list. This uses Google\'s test mode, so logging can still occur. Please see the README for details.';
     }
 
 
