@@ -18,6 +18,10 @@ if ( ! class_exists( 'Yfp_Plugin_Base' ) ) {
     require_once(plugin_dir_path( __FILE__ ) . 'includes/Yfp_Plugin_Base.php');
 }
 
+if ( ! class_exists( 'Yfp_Plugin_Settings_Section' ) ) {
+    require_once(plugin_dir_path( __FILE__ ) . 'includes/Yfp_Plugin_Settings_Section.php');
+}
+
 class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
 {
     const ADMIN_MENU_SLUG = 'yfp-ganalytics-basic-admin';
