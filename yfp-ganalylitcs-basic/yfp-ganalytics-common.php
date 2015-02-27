@@ -70,7 +70,7 @@ class Yfp_Ganalytics_Basic_Common
     */
     protected function forceTestData() {
         $this->optCurrent[self::OK_ENABLED] = '1';
-        $this->optCurrent[self::OK_GID] = 'UA-26307840-1';
+        $this->optCurrent[self::OK_GID] = 'UA-xxxxxx-1';
         //$this->optCurrent[self::OK_IN_HEAD] = '1';
         $this->optCurrent[self::OK_LOG_ON] = '1';
         //$this->optCurrent[self::OK_SERVER_EXCLUDES] = 'one; two';
@@ -92,25 +92,67 @@ class Yfp_Ganalytics_Basic_Common
     }
 
     /**
+    * Want to be able to process the array before it is saved, so this
+    * needs to be public. Needs to be consistent so non-functional
+    * changes to the string do cause it to be saved.
+    */
+    public function serverStringToArray($inpstr) {
+        $items = array();
+        if (strlen($inpstr)) {
+            $items = explode(';', $inpstr);
+            $items = array_map('trim', $items);
+            $items = array_unique($items);
+            $items = array_filter($items);
+        }
+        return $items;
+
+    }
+    public function serverArrayToString($inpArr) {
+        return implode('; ', $inpArr);
+    }
+
+    /**
     * Calculations belong here so they all change in one place.
+    * These do not return the raw values, but the computed ones that are usually needed.
+    */
+    /**
+    * @return bool
     */
     public function optIsEnabled() {
         return intval($this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_ENABLED]) > 0;
     }
+    /**
+    * @return bool
+    */
     public function optInHead() {
         return intval($this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_IN_HEAD]) > 0;
     }
+    /**
+    * @return bool
+    */
     public function optUseLogging() {
         return intval($this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_LOG_ON]) > 0;
     }
+    /**
+    * @return string
+    */
     public function optGid() {
         return $this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_GID];
     }
-    public function optLocalList() {
+    /**
+    * @return array of strings
+    */
+    public function optServerExludeList() {
+        return $this->serverStringToArray($this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES]);
+
+        $items = array();
         $list = $this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES];
-        $items = explode(';', $list);
-        $items = array_map('trim', $items);
-        $items = array_filter($items);
+        if (strlen($list)) {
+            $items = explode(';', $list);
+            $items = array_map('trim', $items);
+            $items = array_unique($items);
+            $items = array_filter($items);
+        }
         return $items;
     }
 }

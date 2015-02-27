@@ -54,7 +54,7 @@ class Yfp_Ganalytics_Basic
     protected function isIgnoredServer() {
 
         $isValidHost = true;
-        $ignoreList = $this->pluginCommon->optLocalList();
+        $ignoreList = $this->pluginCommon->optServerExludeList();
         if (count($ignoreList)) {
             // Make sure the match is at the end.
             $adder = '_xzx_';

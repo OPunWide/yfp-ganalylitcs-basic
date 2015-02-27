@@ -310,18 +310,15 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
     * Display the analytics ID input box
     */
     public function form_cb_seerver_excludes() {
-        $curArr = $this->pluginCommon->getCurrentOptions();
-        $list = $this->pluginCommon->optLocalList();
+        $list = $this->pluginCommon->optServerExludeList();
+        $str = $this->pluginCommon->serverArrayToString($list);
         // params are: id, name, value
         printf(self::TPL_INPUT_ELEM,
             $this->attrToString(Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES, Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS),
             $this->attrToArray(Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES, Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS),
-            //esc_html__($curArr[Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES])
-            esc_html__(implode('; ', $list))
+            esc_html__($str)
         );
         echo '<br />Define server specs that you do not want to track. This uses Google\'s test mode, so loggin can still occur.';
-        //var_dump(get_option( Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS ));
-
     }
 
 
@@ -336,22 +333,20 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
     public function sanitize_wpot_options( $input ) {
         $message = array();
         $changedList = array();
+        $showProgress = false;
 
         //$message .= __METHOD__ . '<br />';
         $type = 'updated';
         $wasChanged = false;
 
         $raw = $this->pluginCommon->getRawOptions();
-        if (is_array($raw)) {
-            //$message[] = 'sav (raw): '. print_r($raw, true) . '<br />';
-        }
-        else {
-            //$message[] = 'key does not exist<br />';
-        }
-        // This gets all keys and values with their defaults if they have not been saved.
+        // This gets all keys and values, using their defaults if they have not been saved.
         $saved = $this->pluginCommon->getCurrentOptions();
-        //$message[] = 'New (inp): '. print_r($input, true) . '<br />';
-        //$message[] = 'Cur (sav): '. print_r($saved, true) . '<br />';
+        if ($showProgress) {
+            $message[] = 'New (inp): '. print_r($input, true) . '<br />';
+            $message[] = is_array($raw) ? 'sav (raw): '. print_r($raw, true) . '<br />' : 'key does not exist<br />';
+            $message[] = 'Cur (sav): '. print_r($saved, true) . '<br />';
+        }
 
         $key = Yfp_Ganalytics_Basic_Common::OK_GID;
         if (array_key_exists($key, $input)) {
@@ -359,8 +354,8 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
             if (is_string($input[$key])) {
                 $val = sanitize_text_field($input[$key]);
                 // empty is okay ... if ('' !== $val)
-                if ($saved[$key] != $input[$key]) {
-                    $saved[$key] = $input[$key];
+                if ($saved[$key] != $val) {
+                    $saved[$key] = $val;
                     $wasChanged |= true;
                     $changedList[] = $key;
                 }
@@ -372,9 +367,12 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
 
             if (is_string($input[$key])) {
                 $val = sanitize_text_field($input[$key]);
+                // Make it look like it will when the form is next shown to stop false saves.
+                $arr = $this->pluginCommon->serverStringToArray($val);
+                $val = $this->pluginCommon->serverArrayToString($arr);
                 // empty is okay ... if ('' !== $val)
-                if ($saved[$key] != $input[$key]) {
-                    $saved[$key] = $input[$key];
+                if ($saved[$key] != $val) {
+                    $saved[$key] = $val;
                     $wasChanged |= true;
                     $changedList[] = $key;
                 }
@@ -429,7 +427,9 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
                 $type = 'error';
         }
         */
-        //$message[] = 'Cur (end): '. print_r($saved, true) . '<br />';
+        if ($showProgress) {
+            $message[] = 'Cur (end): '. print_r($saved, true) . '<br />';
+        }
         $message[] = 'There were ' . ($wasChanged ? '' : 'not any ') . 'changes made.<br />';
         if (count($changedList)) {
             $message[] = 'Keys changed: ' . implode(', ', $changedList);
