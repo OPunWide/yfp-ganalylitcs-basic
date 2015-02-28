@@ -33,18 +33,6 @@ class Yfp_Ganalytics_Basic
     // debug
     protected $foundHost = '';
 
-
-    /////////////////////////////////////////////////////////////////////////////////
-    /**
-    * Change the data in this function to customize the plugin for the
-    * website it is being used on, and any options.
-    */
-    private function getCurrentSettings() {
-        $this->pluginCommon->getCurrentOptions();
-    }
-    /////////////////////////////////////////////////////////////////////////////////
-
-
     /**
     * Determines if this is a local host based on the server name.
     * Compares the server name to a list of server endings to support .local,
@@ -74,7 +62,7 @@ class Yfp_Ganalytics_Basic
 
 
     /**
-    * Add the hooks that make this run. Or do admin, but don't track it.
+    * Add the hooks that make this run. Or do admin.
     */
     protected function init() {
         // Provides info to parent class, so do it early.
@@ -83,7 +71,6 @@ class Yfp_Ganalytics_Basic
         }
         else {
             $this->pluginCommon = new Yfp_Ganalytics_Basic_Common();
-            $this->getCurrentSettings();
 
             // Don't track if we aren't enabled.
             if ($this->pluginCommon->optIsEnabled()) {
@@ -94,17 +81,21 @@ class Yfp_Ganalytics_Basic
                 );
             }
             else {
+                // Add a comment so we can tell the plugin is functioning, but disabled.
                 add_action(
                     $this->pluginCommon->optInHead() ? self::TOP_HOOK : self::BOTTOM_HOOK,
                     array($this, 'disabled_message')
                 );
-
             }
         }
     }
 
+
     /**
-    * A string for the JS that does not depend on any options.
+    * A string of JS code that does not depend on any options to build,
+    * but may not be used. It runs an optional Analytics callback
+    * feature and will log a message to the console if logging is possible.
+    *
     * @return string
     */
     protected function getTrackerString() {
@@ -121,33 +112,29 @@ ga(function(tracker) {
     }
 
 
-
     /**
     *
     * Based on Nov. 2014 Google documents version.
     *
-    * These comments describes the code used in the framework. The JS was identical
-    * when this plugin was created.
+    * This code was originally used in another project. The existing interface
+    * is used and a few changes were added for flexibility and status improvements.
     *
-    * Basic usage: Put this between script tags:
-    *   <?php echo \Yfp\Js\sswdGoogleAnalytics($gaUaId); ?>
-    * Typical usage:
-    *     echo \Yfp\Js\sswdGoogleAnalytics($gaUaId, array(
+    * Basic usage: getJsCodeToEcho($gaUaId, array(
     *        'log' => true,
     *        'localserver' => \Yfp\isLocalServer(),
     *    ));
-    *
-    * Creates the JavaScript code for Google Analytics. Put the output within script tags.
     *
     * @param string $gaUaId - GA web property ID, looks like: UA-XXXX-Y
     * @param array $options -
     *       'localserver' - trueish to add 'cookieDomain': 'none' to the create command.
     *       'log' - trueish to add a console message. This is to show that GA is working.
-    * @return string
+    * @return string - everything ready to be wrapped in script tags.
     */
     protected function getJsCodeToEcho($gaUaId, $options=array()) {
 
         $createOpts = "'auto'";
+        $optKeyLog = 'log';
+        $optKeyLocal = 'localserver';
         $useConsole = false;
         $jsMsgs = array();
 
@@ -155,15 +142,17 @@ ga(function(tracker) {
             $jsMsgs[] = 'Options array input keys: "' . implode(', ', array_keys($options)) . '"';
 
             // Check logging option
-            if (array_key_exists('log', $options) && $options['log']){
+            if (array_key_exists($optKeyLog, $options) && $options[$optKeyLog]){
                 $useConsole = true;
                 $jsMsgs[] = 'logging is on';
             }
 
+            // For building the options array that is sent in the JS.
             $coList = array();
-            // Used for testing on localhost.
-            if (array_key_exists('localserver', $options) && $options['localserver']){
+            // Used for testing the code without Google logging the event.
+            if (array_key_exists($optKeyLocal, $options) && $options[$optKeyLocal]){
                 $coList[] = "'cookieDomain': 'none'";
+                // foundHost was saved when this mode was set.
                 $jsMsgs[] = 'ignore domain is on, found: -' . $this->foundHost . '-';
             }
 
@@ -171,7 +160,6 @@ ga(function(tracker) {
             if (count($coList)) {
                 $createOpts = "{\n" . implode(', ', $coList) . "}\n";
             }
-
         }
 
         // Get the main analytics code. Start with some identifying comments.
@@ -205,15 +193,16 @@ ga('send', 'pageview');
 
 
     /**
-    * This is public so it can be reached by a hook. It places code into
-    * either the head or tail, using either the wp_head or hook.
+    * This is public so it can be reached by a hook. The string it returns
+    * will be placed into either the head or tail, using either the wp_head
+    * or wp_footer hook.
+    * @return string
     */
     public function insert_js_code() {
         echo "\n<script>\n" . $this->getJsCodeToEcho($this->pluginCommon->optGid(), array(
             'log' => $this->pluginCommon->optUseLogging(),
             'localserver' => $this->isIgnoredServer(),
         )) . '</script>' . "\n";
-
     }
 
 
@@ -229,9 +218,9 @@ ga('send', 'pageview');
     /**
     * The trend seems to be to make a singleton so the object can be
     * accessed once it is built.
-    * So we'll try that.
     */
     protected function __construct(){}
+
     public static function instance(){
         if (!isset(self::$instance)) {
             self::$instance = new self;

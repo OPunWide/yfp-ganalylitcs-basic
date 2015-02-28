@@ -1,15 +1,10 @@
 <?php
 /**
-* This needs to be cleaned up from the related post code it was taken from.
-* It is overkill for the simple options used.
-*/
-/**
 * A few things are needed in admin as well as outside of it;
 * constants and database retrieval, so put them in a separate class.
 *
-* This will tend to have the defaults for when nothing has been saved
-* and the retrieval methods because they are needed in both modes.
-*
+* This has the defaults for when nothing has been saved
+* and it has the retrieval methods because they are needed in both modes.
 */
 class Yfp_Ganalytics_Basic_Common
 {
@@ -32,11 +27,6 @@ class Yfp_Ganalytics_Basic_Common
     protected $optDefaults = null;
     protected $optCurrent = null;
 
-    // Use the same starting string to make the keys easier to find. These will be in the post_meta table.
-    const KEY_CMB_GROUP_SELECT = '_yfp_mb_group_select';
-
-    protected $groupKeyNameMap = false;
-
     public function __construct() {
         // Set all of the defaults
         $this->optDefaults = array();
@@ -45,7 +35,10 @@ class Yfp_Ganalytics_Basic_Common
         $this->optDefaults[self::OK_IN_HEAD] = '0';
         $this->optDefaults[self::OK_LOG_ON] = self::OKV_IS_FALSE;
         $this->optDefaults[self::OK_SERVER_EXCLUDES] = '.local; .loc';
-        $this->buildCurrentOptions();
+        // Get the saved options, if any.
+        $saved = $this->getRawOptions(true);
+        // Make the current options available, using defaults for non-saved items.
+        $this->optCurrent = array_merge($this->optDefaults, $saved);
     }
 
     public function getDefaultOptions() {
@@ -54,47 +47,24 @@ class Yfp_Ganalytics_Basic_Common
     /**
     * If saved options were found, they are used. Otherwise the default
     * values will be returned.
-    *
     */
     public function getCurrentOptions() {
         return $this->optCurrent;
     }
-    // For debug, just pulls the data from storage.
+    /**
+    * Pulls the data from storage, which will be FALSE if nothing is found.
+    *
+    * @param bool $safe - will always return an array if true
+    */
     public function getRawOptions($safe=false) {
         return $safe ? get_option(self::WPOT_KEY_OPTIONS, array()) : get_option(self::WPOT_KEY_OPTIONS);
     }
 
-    /**
-    * Force override the defaults for testing.
-    * Use it to prove that everything works outside of using admin.
-    */
-    protected function forceTestData() {
-        $this->optCurrent[self::OK_ENABLED] = '1';
-        $this->optCurrent[self::OK_GID] = 'UA-xxxxxx-1';
-        //$this->optCurrent[self::OK_IN_HEAD] = '1';
-        $this->optCurrent[self::OK_LOG_ON] = '1';
-        //$this->optCurrent[self::OK_SERVER_EXCLUDES] = 'one; two';
-        //$this->optCurrent[self::OK_SERVER_EXCLUDES] = '.loc';
-    }
-
-    /**
-    * Gets the saved options. Uses defaults for options the don't exist,
-    * to make it backwards compatible for future options.
-    *
-    */
-    protected function buildCurrentOptions() {
-        $saved = get_option( self::WPOT_KEY_OPTIONS );
-        if (!is_array($saved)) {$saved = array(); }
-        $saved = $this->getRawOptions(true);
-        $this->optCurrent = array_merge($this->optDefaults, $saved);
-        //////////////// TEST CODE TEST CODE TEST CODE TEST CODE /////////////////
-        //$this->forceTestData();
-    }
 
     /**
     * Want to be able to process the array before it is saved, so this
     * needs to be public. Needs to be consistent so non-functional
-    * changes to the string do cause it to be saved.
+    * changes to the string do not cause it to be saved.
     */
     public function serverStringToArray($inpstr) {
         $items = array();
@@ -144,16 +114,6 @@ class Yfp_Ganalytics_Basic_Common
     */
     public function optServerExludeList() {
         return $this->serverStringToArray($this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES]);
-
-        $items = array();
-        $list = $this->optCurrent[Yfp_Ganalytics_Basic_Common::OK_SERVER_EXCLUDES];
-        if (strlen($list)) {
-            $items = explode(';', $list);
-            $items = array_map('trim', $items);
-            $items = array_unique($items);
-            $items = array_filter($items);
-        }
-        return $items;
     }
 }
 

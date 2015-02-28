@@ -1,19 +1,15 @@
 <?php
 /**
 * Simple plugin for GA. Admin is separate because it does so much more
-* that the actual worker-class.
+* that the actual worker-code.
 */
-/*
-TODO:
-Check for GA_ID before allowing plugin to be enabled.
 
-*/
-// This is included by the main plugin, so the common class is already loaded.
+// This file is included by the main plugin, so the common class should already be loaded.
 if ( ! class_exists( 'Yfp_Ganalytics_Basic_Common'  ) ) {
     throw new Yfp_Plugin_Base_Exception('Required class was not defined: ' . 'Yfp_Ganalytics_Basic_Common');
 }
 
-// This should be renamed to plugin-admin base.
+// This should be renamed to something like plugin-admin base.
 if ( ! class_exists( 'Yfp_Plugin_Base' ) ) {
     require_once(plugin_dir_path( __FILE__ ) . 'includes/Yfp_Plugin_Base.php');
 }
@@ -31,34 +27,15 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
     // The menu text in the settings menu, so keep it short.
     const STR_SETTINGS_MENU_TEXT = 'YFP G. Analytics';
 
-    // Keys within the WPOT_KEY_OPTIONS saved settings.
-    const WPOPT_NAMEKEY_ADD_ITEM = '_addtemp';
-    const WPOPT_NAMEKEY_DEL_ITEM = '_deltemp';
-    const WPOPT_NAMEKEY_MOD_ITEM = '_modtemp';
-    const WPOPT_NAMEKEY_IS_DEBUG = '_is_debug';
-    const WPOPT_NAMEKEY_USE_HEAD = '_use_head';
-
     const TPL_INPUT_ELEM = '<input type="text" id="%s" name="%s" value="%s" />';
     // Lazy select... the last %s is to allow a "checked" option.
     const TPL_RADIO_ELEM = '<input type="radio" id="%s" name="%s" value="%s"%s />';
     const INPUT_VALUE_NO = 'no';
     const INPUT_VALUE_YES = 'yes';
 
-    const GROUP_KEY_NO_SELECTION = 'none';
-
-
-    // The maps are generated during init because they are used in multiple places.
-    protected $groupKeyNameMap;
-    protected $groupKeyUseCount;
-
+    // Access the the common class within this object.
     protected $pluginCommon;
     protected $fqPluginFile;
-    protected $allowedTags = array('em', 'strong', 'span', );
-
-    // http://codex.wordpress.org/Class_Reference/WP_Meta_Query#Accepted_Arguments
-    // http://codex.wordpress.org/Class_Reference/WP_Query
-    // http://codex.wordpress.org/Editing_wp-config.php#Save_queries_for_analysis
-    // http://codex.wordpress.org/Function_Reference/get_posts
 
 
     function __construct($fqPluginFile) {
@@ -71,7 +48,6 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
 
     /**
     * All YFP plugins use this.
-    *
     */
     protected function initializePluginSettings() {
         //$fqFile = __FILE__;
@@ -84,9 +60,7 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
         // Used on input forms for this plugin.
         $this->pluginSettingsGroup = $this->keySanitize($this->plugin_basename) . '_settings_group';
         parent::__construct();
-
     }
-
 
 
     protected function initAdmin() {
@@ -160,19 +134,18 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
     }
 
     /**
-     * Callback function that prints the section's html.
+     * Callback function that prints the section's introductory html.
      * This is (but does not have to be) a summary of the current saved values.
      */
     public function form_cb_section_1_html() {
         _e('<p>A simple way to include Google\'s Universal Analytics code. Add the ID you wish to track and then select the enable option.</p>');
-        //$options = get_option( Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS );
-        //var_dump($options);
     }
 
 
     /**
     * Separated to give more structure to how the parts work together.
-    * Fields are displayed in order. The section is displayed first.
+    * Fields are displayed in the order added.
+    * The section info is displayed first using the callback.
     * Only one add_settings_section() per sectionName.
     *
     * @param string $secName - Links section fields together, along with any settings
@@ -237,6 +210,7 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
         echo '<br />Use debug mode. Logs an entry to the console. Rarely used.';
         //var_dump(get_option( Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS ));
     }
+
     public function form_cb_radio_head() {
         $isOn = $this->pluginCommon->optInHead();
         // Radio button to select which action to perform.
@@ -300,7 +274,6 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
         );
         echo '<br />This is the Tracking ID provided by Google for your site.';
         //var_dump(get_option( Yfp_Ganalytics_Basic_Common::WPOT_KEY_OPTIONS ));
-
     }
 
     /**
@@ -319,13 +292,17 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
     }
 
 
-
-    //protected function keyHasInputBool()
     /**
-    * Massage the inputs that go into the WPOT_KEY_OPTIONS storage location.
+    * Massage the inputs that go into the WPOT_KEY_OPTIONS storage location. This
+    * is the chance to fix any badness that was entered into the form when it
+    * was submitted.
+    *
+    * Add back current or default values in the array key that is being processed
+    * because the results of this determine everything that will be stored for
+    * this key.
     *
     * @param mixed $input
-    * @return string
+    * @return array
     */
     public function sanitize_wpot_options( $input ) {
         $message = array();
@@ -431,6 +408,8 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
         if (count($changedList)) {
             $message[] = 'Keys changed: ' . implode(', ', $changedList);
         }
+        // Send a message or an error if the data exists.
+        // $type = 'updated' will cause a status message to be sent rather than an error.
         if (count($message)) {
             add_settings_error(
                 'unusedUniqueIdentifyer2',
@@ -444,9 +423,5 @@ class Yfp_Ganalytics_Basic_Admin extends Yfp_Plugin_Base
         return $saved;
     }
 
-
-
 }
-
-
 
