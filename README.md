@@ -1,7 +1,7 @@
 # yfp-ganalylitcs-basic
 
-YFP Google Analytics Settings is a WordPress plugin that adds the Google Analytics JavaScript (Universal) code at the beginning or end of your page by using either the `wp_head` or `wp_footer` hook. 
-The code is for Google's "Universal Analytics", which is their currunt standard.
+YFP Google Analytics Basic is a WordPress plugin that adds the Google Analytics JavaScript (Universal) code at the beginning or end of your page by using either the `wp_head` or `wp_footer` hook. 
+The code inserted is for Google's "Universal Analytics", which is their current standard.
 
 This is very basic and does not support the many options that Analytics now offers. But if you just want to turn tracking on, this is the way to go.
 
